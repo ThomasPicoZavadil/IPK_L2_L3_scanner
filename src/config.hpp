@@ -1,31 +1,46 @@
 /**
  * @file config.hpp
- * @brief Configuration struct and CLI argument parsing for ipk-l2l3-scan.
+ * @brief CLI argument parsing for ipk-l2l3-scan.
  */
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include <string>
-#include <vector>
 #include <iostream>
 #include <cstdlib>
+#include <string>
+#include <vector>
+
 #include <getopt.h>
 
 /**
- * @brief Holds the parsed configuration for the scanner.
+ * @brief Encapsulates the parsed command-line configuration.
+ *
+ * Use the static factory Config::parse(argc, argv) to construct.
  */
-struct Config {
-    std::string interface;              ///< Network interface to scan on (-i)
-    std::vector<std::string> subnets;   ///< Subnets to scan (-s, can be repeated)
-    int timeout_ms = 1000;              ///< Wait timeout in milliseconds (-w, default 1000)
+class Config {
+public:
+    /// Parse command-line arguments. Exits on --help (code 0) or error (code 1).
+    static Config parse(int argc, char* argv[]);
+
+    /// Print usage information to stdout.
+    static void print_help(const char* prog_name);
+
+    // Accessors
+    const std::string&              interface() const { return interface_; }
+    const std::vector<std::string>& subnets()   const { return subnets_;   }
+    int                             timeout_ms() const { return timeout_ms_; }
+
+private:
+    Config() = default;
+
+    std::string              interface_;
+    std::vector<std::string> subnets_;
+    int                      timeout_ms_ = 1000;
 };
 
-/**
- * @brief Prints usage / help information and exits.
- *
- * @param prog_name Name of the executable (argv[0]).
- */
-inline void print_help(const char* prog_name) {
+// Inline implementation (header-only)
+
+inline void Config::print_help(const char* prog_name) {
     std::cout
         << "Usage: " << prog_name << " [OPTIONS]\n"
         << "\n"
@@ -39,16 +54,7 @@ inline void print_help(const char* prog_name) {
         << "  " << prog_name << " -i eth0 -s 192.168.1.0/24 -s 10.0.0.0/8 -w 2000\n";
 }
 
-/**
- * @brief Parses command-line arguments into a Config struct.
- *
- * Exits with code 0 on --help, or code 1 on invalid / missing arguments.
- *
- * @param argc Argument count.
- * @param argv Argument vector.
- * @return Config Parsed configuration.
- */
-inline Config parse_args(int argc, char* argv[]) {
+inline Config Config::parse(int argc, char* argv[]) {
     Config cfg;
 
     static const struct option long_options[] = {
@@ -63,10 +69,10 @@ inline Config parse_args(int argc, char* argv[]) {
     while ((opt = getopt_long(argc, argv, "i:s:w:h", long_options, nullptr)) != -1) {
         switch (opt) {
             case 'i':
-                cfg.interface = optarg;
+                cfg.interface_ = optarg;
                 break;
             case 's':
-                cfg.subnets.emplace_back(optarg);
+                cfg.subnets_.emplace_back(optarg);
                 break;
             case 'w': {
                 char* end = nullptr;
@@ -75,7 +81,7 @@ inline Config parse_args(int argc, char* argv[]) {
                     std::cerr << "Error: invalid timeout value '" << optarg << "'\n";
                     std::exit(1);
                 }
-                cfg.timeout_ms = static_cast<int>(val);
+                cfg.timeout_ms_ = static_cast<int>(val);
                 break;
             }
             case 'h':
@@ -87,13 +93,12 @@ inline Config parse_args(int argc, char* argv[]) {
         }
     }
 
-    // Validate required arguments
-    if (cfg.interface.empty()) {
+    if (cfg.interface_.empty()) {
         std::cerr << "Error: -i / --interface is required.\n\n";
         print_help(argv[0]);
         std::exit(1);
     }
-    if (cfg.subnets.empty()) {
+    if (cfg.subnets_.empty()) {
         std::cerr << "Error: at least one -s / --subnet is required.\n\n";
         print_help(argv[0]);
         std::exit(1);
