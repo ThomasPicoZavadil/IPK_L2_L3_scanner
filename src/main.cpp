@@ -5,9 +5,17 @@
 #include "config.hpp"
 #include "subnet.hpp"
 #include "netif.hpp"
+#include "arp_crafter.hpp"
 
 #include <algorithm>
+#include <cerrno>
+#include <cstring>
 #include <iostream>
+
+#include <net/ethernet.h>       // ETH_P_ALL
+#include <arpa/inet.h>          // htons
+#include <sys/socket.h>         // socket, AF_PACKET, SOCK_RAW
+#include <unistd.h>             // close
 
 int main(int argc, char* argv[]) {
     Config cfg = Config::parse(argc, argv);
@@ -22,9 +30,10 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "\n";
 
-    // Print interface info (MAC, IPv4, IPv6)
+    // Resolve interface info (MAC, IPv4, IPv6)
+    InterfaceInfo ifinfo;
     try {
-        InterfaceInfo ifinfo = get_interface_info(cfg.interface());
+        ifinfo = get_interface_info(cfg.interface());
         std::cout << "=== Interface Info ===\n";
         std::cout << "  Name : " << ifinfo.name << "\n";
         std::cout << "  MAC  : " << (ifinfo.mac_address.empty()  ? "(none)" : ifinfo.mac_address)  << "\n";
@@ -36,7 +45,18 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Parse each subnet and generate host IPs
+    // Open raw socket for packet crafting
+    int raw_sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+    if (raw_sock < 0) {
+        std::cerr << "Failed to open raw socket: " << std::strerror(errno)
+                  << " (are you running as root?)\n";
+        return 1;
+    }
+
+    // Create ARP crafter
+    ArpCrafter arp(raw_sock, ifinfo);
+
+    // Parse each subnet and send ARP requests for IPv4 hosts
     for (const auto& cidr : cfg.subnets()) {
         try {
             Subnet subnet(cidr);
@@ -48,31 +68,29 @@ int main(int argc, char* argv[]) {
             std::cout << "  Usable IPs : " << subnet.usable_host_count() << "\n";
 
             auto hosts = subnet.generate_host_ips();
-            std::cout << "  Generated  : " << hosts.size() << " addresses\n";
+            std::cout << "  Generated  : " << hosts.size() << " addresses\n\n";
 
-            // Show first and last few addresses
-            constexpr size_t PREVIEW = 5;
-            size_t show = std::min(hosts.size(), PREVIEW);
-            for (size_t i = 0; i < show; ++i) {
-                std::cout << "    " << hosts[i] << "\n";
-            }
-            if (hosts.size() > 2 * PREVIEW) {
-                std::cout << "    ... (" << hosts.size() - 2 * PREVIEW << " more)\n";
-                for (size_t i = hosts.size() - PREVIEW; i < hosts.size(); ++i) {
-                    std::cout << "    " << hosts[i] << "\n";
+            if (!subnet.is_ipv6()) {
+                // Send ARP request for each host in this IPv4 subnet
+                for (const auto& host : hosts) {
+                    try {
+                        arp.send_request(host);
+                    } catch (const std::exception& e) {
+                        std::cerr << "ARP send error: " << e.what() << "\n";
+                    }
                 }
-            } else if (hosts.size() > PREVIEW) {
-                for (size_t i = show; i < hosts.size(); ++i) {
-                    std::cout << "    " << hosts[i] << "\n";
-                }
+            } else {
+                std::cout << "  (IPv6 subnet – skipping ARP)\n\n";
             }
-            std::cout << "\n";
 
         } catch (const std::exception& e) {
             std::cerr << "Error parsing '" << cidr << "': " << e.what() << "\n";
+            close(raw_sock);
             return 1;
         }
     }
 
+    close(raw_sock);
     return 0;
 }
+

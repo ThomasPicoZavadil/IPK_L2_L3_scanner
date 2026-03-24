@@ -5,6 +5,8 @@
 #include "arp_crafter.hpp"
 
 #include <cstring>
+#include <iomanip>
+#include <iostream>
 #include <stdexcept>
 
 #include <arpa/inet.h>          // inet_pton, htons
@@ -26,6 +28,10 @@ static constexpr size_t ARP_PKT_LEN = 28;
 static constexpr size_t FRAME_LEN   = ETH_HDR_LEN + ARP_PKT_LEN;
 
 void ArpCrafter::send_request(const std::string& target_ip) {
+    std::cerr << "[ARP] Crafting request: "
+              << iface_.mac_address << " (" << iface_.ipv4_address << ") -> "
+              << target_ip << " on " << iface_.name << "\n";
+
     // Parse sender and target IPv4 addresses
     struct in_addr sender_addr{};
     if (inet_pton(AF_INET, iface_.ipv4_address.c_str(), &sender_addr) != 1) {
@@ -100,4 +106,7 @@ void ArpCrafter::send_request(const std::string& target_ip) {
             "sendto() failed for ARP request to '" + target_ip +
             "': " + std::strerror(errno));
     }
+
+    std::cerr << "[ARP] Sent " << sent << "/" << FRAME_LEN
+              << " bytes (who-has " << target_ip << ")\n";
 }
