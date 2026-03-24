@@ -4,6 +4,7 @@
  */
 #include "config.hpp"
 #include "subnet.hpp"
+#include "netif.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -20,6 +21,20 @@ int main(int argc, char* argv[]) {
         std::cout << "  - " << s << "\n";
     }
     std::cout << "\n";
+
+    // Print interface info (MAC, IPv4, IPv6)
+    try {
+        InterfaceInfo ifinfo = get_interface_info(cfg.interface());
+        std::cout << "=== Interface Info ===\n";
+        std::cout << "  Name : " << ifinfo.name << "\n";
+        std::cout << "  MAC  : " << (ifinfo.mac_address.empty()  ? "(none)" : ifinfo.mac_address)  << "\n";
+        std::cout << "  IPv4 : " << (ifinfo.ipv4_address.empty() ? "(none)" : ifinfo.ipv4_address) << "\n";
+        std::cout << "  IPv6 : " << (ifinfo.ipv6_address.empty() ? "(none)" : ifinfo.ipv6_address) << "\n";
+        std::cout << "\n";
+    } catch (const std::exception& e) {
+        std::cerr << "Error querying interface '" << cfg.interface() << "': " << e.what() << "\n";
+        return 1;
+    }
 
     // Parse each subnet and generate host IPs
     for (const auto& cidr : cfg.subnets()) {
