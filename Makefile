@@ -4,7 +4,7 @@ TARGET   = ipk-l2l3-scan
 SRCDIR   = src
 BUILDDIR = build
 
-SRCS = $(SRCDIR)/main.cpp $(SRCDIR)/subnet.cpp $(SRCDIR)/netif.cpp
+SRCS = $(SRCDIR)/main.cpp $(SRCDIR)/subnet.cpp $(SRCDIR)/netif.cpp $(SRCDIR)/arp_crafter.cpp
 OBJS = $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(SRCS))
 
 .PHONY: all clean
