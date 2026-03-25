@@ -6,11 +6,15 @@
 #include "subnet.hpp"
 #include "netif.hpp"
 #include "arp_crafter.hpp"
+#include "arp_listener.hpp"
+#include "pcap_engine.hpp"
 
 #include <algorithm>
 #include <cerrno>
+#include <chrono>
 #include <cstring>
 #include <iostream>
+#include <thread>
 
 #include <net/ethernet.h>       // ETH_P_ALL
 #include <arpa/inet.h>          // htons
@@ -56,6 +60,15 @@ int main(int argc, char* argv[]) {
     // Create ARP crafter
     ArpCrafter arp(raw_sock, ifinfo);
 
+    // Create ARP listener (prints to stderr by default)
+    ArpListener arp_listener;
+
+    // Start packet capture on the interface (filter: ARP only)
+    PcapEngine engine(cfg.interface(), "arp");
+    engine.add_listener(&arp_listener);
+    engine.start();
+    std::cerr << "[PCAP] Listening for ARP replies on " << cfg.interface() << "\n";
+
     // Parse each subnet and send ARP requests for IPv4 hosts
     for (const auto& cidr : cfg.subnets()) {
         try {
@@ -89,6 +102,15 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
+
+    // Wait for remaining ARP replies to arrive
+    std::cerr << "[PCAP] Waiting " << cfg.timeout_ms()
+              << " ms for ARP replies…\n";
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(cfg.timeout_ms()));
+
+    engine.stop();
+    std::cerr << "[PCAP] Capture stopped.\n";
 
     close(raw_sock);
     return 0;
