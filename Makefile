@@ -4,7 +4,7 @@ TARGET   = ipk-l2l3-scan
 SRCDIR   = src
 BUILDDIR = build
 
-SRCS = $(SRCDIR)/main.cpp $(SRCDIR)/subnet.cpp $(SRCDIR)/netif.cpp $(SRCDIR)/arp_crafter.cpp
+SRCS = $(SRCDIR)/main.cpp $(SRCDIR)/subnet.cpp $(SRCDIR)/netif.cpp $(SRCDIR)/arp_crafter.cpp $(SRCDIR)/pcap_engine.cpp
 OBJS = $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(SRCS))
 
 .PHONY: all clean
@@ -12,7 +12,7 @@ OBJS = $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(SRCS))
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^ -lpcap -lpthread
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp | $(BUILDDIR)
 	$(CXX) $(CXXFLAGS) -I$(SRCDIR) -c -o $@ $<
