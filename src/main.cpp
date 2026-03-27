@@ -7,6 +7,7 @@
 #include "netif.hpp"
 #include "arp_crafter.hpp"
 #include "arp_listener.hpp"
+#include "arp_printer.hpp"
 #include "pcap_engine.hpp"
 
 #include <algorithm>
@@ -110,7 +111,32 @@ int main(int argc, char* argv[]) {
         std::chrono::milliseconds(cfg.timeout_ms()));
 
     engine.stop();
-    std::cerr << "[PCAP] Capture stopped.\n";
+    std::cerr << "[PCAP] Capture stopped.\n\n";
+
+    // --- Output Results ---
+    ArpPrinter arp_printer;
+    const auto& results = arp_listener.results();
+
+    // Iterate over everything we queried again to print in order
+    for (const auto& cidr : cfg.subnets()) {
+        try {
+            Subnet subnet(cidr);
+            if (subnet.is_ipv6()) {
+                continue; // skipped ARP
+            }
+            auto hosts = subnet.generate_host_ips();
+            for (const auto& host : hosts) {
+                auto it = results.find(host);
+                if (it != results.end()) {
+                    arp_printer.print_ok(host, it->second);
+                } else {
+                    arp_printer.print_fail(host);
+                }
+            }
+        } catch (...) {
+            // Already reported during the send loop
+        }
+    }
 
     close(raw_sock);
     return 0;

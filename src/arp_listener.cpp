@@ -42,9 +42,11 @@ static constexpr size_t ARP_OFF_SHA   = 8;
 static constexpr size_t ARP_OFF_SPA   = 14;
 
 
-ArpListener::ArpListener(Callback cb)
-    : callback_(std::move(cb))
-{}
+std::unordered_map<std::string, std::string> ArpListener::results() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return results_;
+}
 
 bool ArpListener::parse_packet(const uint8_t* buffer, uint32_t length)
 {
@@ -76,9 +78,9 @@ bool ArpListener::parse_packet(const uint8_t* buffer, uint32_t length)
 
     // --- Extract sender MAC (SHA) ---
     const uint8_t* sha = arp + ARP_OFF_SHA;
-    char mac_str[18]; // "xx:xx:xx:xx:xx:xx\0"
+    char mac_str[18]; // "xx-xx-xx-xx-xx-xx\0"
     std::snprintf(mac_str, sizeof(mac_str),
-                  "%02x:%02x:%02x:%02x:%02x:%02x",
+                  "%02x-%02x-%02x-%02x-%02x-%02x",
                   sha[0], sha[1], sha[2], sha[3], sha[4], sha[5]);
 
     // --- Extract sender IP  (SPA) ---
@@ -86,11 +88,9 @@ bool ArpListener::parse_packet(const uint8_t* buffer, uint32_t length)
     inet_ntop(AF_INET, arp + ARP_OFF_SPA, ip_str, sizeof(ip_str));
 
     // --- Deliver result ---
-    if (callback_) {
-        callback_(mac_str, ip_str);
-    } else {
-        std::cerr << "[ARP Reply] " << ip_str
-                  << " is at " << mac_str << "\n";
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        results_[ip_str] = mac_str;
     }
 
     return true;
