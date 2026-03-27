@@ -1,6 +1,6 @@
 /**
  * @file arp_printer.hpp
- * @brief ArpPrinter – formats ARP scan results for output.
+ * @brief ArpPrinter - formats ARP scan results for output.
  */
 #ifndef ARP_PRINTER_HPP
 #define ARP_PRINTER_HPP

@@ -1,6 +1,6 @@
 /**
  * @file arp_listener.cpp
- * @brief ArpListener::parse_packet() – extracts sender MAC/IP from ARP Replies.
+ * @brief ArpListener::parse_packet() - extracts sender MAC/IP from ARP Replies.
  */
 #include "arp_listener.hpp"
 

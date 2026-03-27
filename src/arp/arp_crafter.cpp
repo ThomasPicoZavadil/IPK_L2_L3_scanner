@@ -1,6 +1,6 @@
 /**
  * @file arp_crafter.cpp
- * @brief ArpCrafter::send_request() – builds and sends an ARP Request frame.
+ * @brief ArpCrafter::send_request() - builds and sends an ARP Request frame.
  */
 #include "arp_crafter.hpp"
 

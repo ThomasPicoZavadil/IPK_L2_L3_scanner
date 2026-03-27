@@ -1,6 +1,6 @@
 /**
  * @file arp_listener.hpp
- * @brief ArpListener – parses ARP Reply frames from captured packets.
+ * @brief ArpListener - parses ARP Reply frames from captured packets.
  */
 #ifndef ARP_LISTENER_HPP
 #define ARP_LISTENER_HPP

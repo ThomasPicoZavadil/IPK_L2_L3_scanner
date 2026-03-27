@@ -1,6 +1,6 @@
 /**
  * @file arp_crafter.hpp
- * @brief ArpCrafter – sends ARP Request frames over a raw socket.
+ * @brief ArpCrafter - sends ARP Request frames over a raw socket.
  */
 #ifndef ARP_CRAFTER_HPP
 #define ARP_CRAFTER_HPP

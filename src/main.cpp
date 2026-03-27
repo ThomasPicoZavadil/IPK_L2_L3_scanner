@@ -1,13 +1,13 @@
 /**
  * @file main.cpp
- * @brief Entry point for ipk-l2l3-scan – parses CLI args, resolves subnets.
+ * @brief Entry point for ipk-l2l3-scan - parses CLI args, resolves subnets.
  */
 #include "config.hpp"
 #include "subnet.hpp"
 #include "netif.hpp"
-#include "arp_crafter.hpp"
-#include "arp_listener.hpp"
-#include "arp_printer.hpp"
+#include "arp/arp_crafter.hpp"
+#include "arp/arp_listener.hpp"
+#include "arp/arp_printer.hpp"
 #include "pcap_engine.hpp"
 
 #include <algorithm>
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
                     }
                 }
             } else {
-                std::cout << "  (IPv6 subnet – skipping ARP)\n\n";
+                std::cout << "  (IPv6 subnet - skipping ARP)\n\n";
             }
 
         } catch (const std::exception& e) {
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
 
     // Wait for remaining ARP replies to arrive
     std::cerr << "[PCAP] Waiting " << cfg.timeout_ms()
-              << " ms for ARP replies…\n";
+              << " ms for ARP replies...\n";
     std::this_thread::sleep_for(
         std::chrono::milliseconds(cfg.timeout_ms()));
 
