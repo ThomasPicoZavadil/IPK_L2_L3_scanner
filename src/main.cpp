@@ -8,6 +8,7 @@
 #include "arp/arp_crafter.hpp"
 #include "arp/arp_listener.hpp"
 #include "arp/arp_printer.hpp"
+#include "icmpv4/icmpv4_crafter.hpp"
 #include "pcap_engine.hpp"
 
 #include <algorithm>
@@ -61,6 +62,9 @@ int main(int argc, char* argv[]) {
     // Create ARP crafter
     ArpCrafter arp(raw_sock, ifinfo);
 
+    // Create ICMPv4 crafter
+    Icmpv4Crafter icmp(raw_sock, ifinfo);
+
     // Create ARP listener (prints to stderr by default)
     ArpListener arp_listener;
 
@@ -85,10 +89,11 @@ int main(int argc, char* argv[]) {
             std::cout << "  Generated  : " << hosts.size() << " addresses\n\n";
 
             if (!subnet.is_ipv6()) {
-                // Send ARP request for each host in this IPv4 subnet
+                // Send ARP and ICMPv4 requests for each host in this IPv4 subnet
                 for (const auto& host : hosts) {
                     try {
                         arp.send_request(host);
+                        icmp.send_request(host);
                     } catch (const std::exception& e) {
                         std::cerr << "ARP send error: " << e.what() << "\n";
                     }
