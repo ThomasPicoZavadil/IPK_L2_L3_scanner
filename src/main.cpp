@@ -9,6 +9,7 @@
 #include "arp/arp_listener.hpp"
 #include "arp/arp_printer.hpp"
 #include "icmpv4/icmpv4_crafter.hpp"
+#include "icmpv4/icmpv4_listener.hpp"
 #include "pcap_engine.hpp"
 
 #include <algorithm>
@@ -68,11 +69,15 @@ int main(int argc, char* argv[]) {
     // Create ARP listener (prints to stderr by default)
     ArpListener arp_listener;
 
-    // Start packet capture on the interface (filter: ARP only)
-    PcapEngine engine(cfg.interface(), "arp");
+    // Create ICMPv4 listener
+    Icmpv4Listener icmp_listener;
+
+    // Start packet capture on the interface (filter: ARP and ICMP)
+    PcapEngine engine(cfg.interface(), "arp or icmp");
     engine.add_listener(&arp_listener);
+    engine.add_listener(&icmp_listener);
     engine.start();
-    std::cerr << "[PCAP] Listening for ARP replies on " << cfg.interface() << "\n";
+    std::cerr << "[PCAP] Listening for ARP and ICMP replies on " << cfg.interface() << "\n";
 
     // Parse each subnet and send ARP requests for IPv4 hosts
     for (const auto& cidr : cfg.subnets()) {
