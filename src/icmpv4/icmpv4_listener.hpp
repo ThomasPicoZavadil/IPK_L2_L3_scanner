@@ -8,6 +8,7 @@
 #include "packet_listener.hpp"
 
 #include <cstdint>
+#include "../scan_result_manager.hpp"
 
 /**
  * @brief Listens for ICMPv4 Echo Reply frames (Ping replies).
@@ -16,13 +17,16 @@
  */
 class Icmpv4Listener : public PacketListener {
 public:
-    Icmpv4Listener() = default;
+    explicit Icmpv4Listener(ScanResultManager& manager) : manager_(manager) {}
 
     /**
      * @brief Inspects a captured packet.
      * Checks if it's an IPv4 ICMP Echo Reply, and if so, prints the source IP.
      */
     bool parse_packet(const uint8_t* buffer, uint32_t length) override;
+
+private:
+    ScanResultManager& manager_;
 };
 
 #endif // ICMPV4_LISTENER_HPP

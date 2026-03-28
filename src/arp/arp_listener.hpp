@@ -9,7 +9,7 @@
 
 #include <mutex>
 #include <string>
-#include <unordered_map>
+#include "../scan_result_manager.hpp"
 
 /**
  * @brief Listens for ARP Reply frames and extracts sender MAC + IP.
@@ -24,19 +24,12 @@ public:
     /**
      * @brief Construct an ArpListener.
      */
-    ArpListener() = default;
-
-    /**
-     * @brief Get the accumulated ARP scan results.
-     * @return A map of IP address -> MAC address.
-     */
-    std::unordered_map<std::string, std::string> results() const;
+    explicit ArpListener(ScanResultManager& manager) : manager_(manager) {}
 
     bool parse_packet(const uint8_t* buffer, uint32_t length) override;
 
 private:
-    mutable std::mutex                           mutex_;
-    std::unordered_map<std::string, std::string> results_;
+    ScanResultManager& manager_;
 };
 
 #endif // ARP_LISTENER_HPP

@@ -7,7 +7,7 @@
 #include "netif.hpp"
 #include "arp/arp_crafter.hpp"
 #include "arp/arp_listener.hpp"
-#include "arp/arp_printer.hpp"
+#include "scan_result_manager.hpp"
 #include "icmpv4/icmpv4_crafter.hpp"
 #include "icmpv4/icmpv4_listener.hpp"
 #include "pcap_engine.hpp"
@@ -66,11 +66,14 @@ int main(int argc, char* argv[]) {
     // Create ICMPv4 crafter
     Icmpv4Crafter icmp(raw_sock, ifinfo);
 
-    // Create ARP listener (prints to stderr by default)
-    ArpListener arp_listener;
+    // Create central result manager
+    ScanResultManager manager;
 
-    // Create ICMPv4 listener
-    Icmpv4Listener icmp_listener;
+    // Create ARP listener (pushes to manager)
+    ArpListener arp_listener(manager);
+
+    // Create ICMPv4 listener (pushes to manager)
+    Icmpv4Listener icmp_listener(manager);
 
     // Start packet capture on the interface (filter: ARP and ICMP)
     PcapEngine engine(cfg.interface(), "arp or icmp");
@@ -96,6 +99,7 @@ int main(int argc, char* argv[]) {
             if (!subnet.is_ipv6()) {
                 // Send ARP and ICMPv4 requests for each host in this IPv4 subnet
                 for (const auto& host : hosts) {
+                    manager.add_target(host, false);
                     try {
                         arp.send_request(host);
                         icmp.send_request(host);
@@ -124,29 +128,8 @@ int main(int argc, char* argv[]) {
     std::cerr << "[PCAP] Capture stopped.\n\n";
 
     // --- Output Results ---
-    ArpPrinter arp_printer;
-    const auto& results = arp_listener.results();
-
-    // Iterate over everything we queried again to print in order
-    for (const auto& cidr : cfg.subnets()) {
-        try {
-            Subnet subnet(cidr);
-            if (subnet.is_ipv6()) {
-                continue; // skipped ARP
-            }
-            auto hosts = subnet.generate_host_ips();
-            for (const auto& host : hosts) {
-                auto it = results.find(host);
-                if (it != results.end()) {
-                    arp_printer.print_ok(host, it->second);
-                } else {
-                    arp_printer.print_fail(host);
-                }
-            }
-        } catch (...) {
-            // Already reported during the send loop
-        }
-    }
+    std::cout << "\n=== Scan Results ===\n";
+    manager.print_results();
 
     close(raw_sock);
     return 0;

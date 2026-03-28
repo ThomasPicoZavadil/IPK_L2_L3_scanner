@@ -51,11 +51,11 @@ bool Icmpv4Listener::parse_packet(const uint8_t* buffer, uint32_t length)
         return false;   // Not an Echo Reply (Type 0)
     }
 
-    // -- 4. Extract Source IP and print --
+    // -- 4. Extract Source IP and log it --
     char ip_str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(ip_hdr->ip_src), ip_str, INET_ADDRSTRLEN);
 
-    std::cout << "[ICMPv4 Listener] Received Echo Reply from IP: " << ip_str << "\n";
+    manager_.update_l3(ip_str);
 
     return true;
 }

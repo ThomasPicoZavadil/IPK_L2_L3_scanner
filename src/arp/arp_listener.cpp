@@ -41,13 +41,6 @@ static constexpr size_t ARP_OFF_OPER  = 6;
 static constexpr size_t ARP_OFF_SHA   = 8;
 static constexpr size_t ARP_OFF_SPA   = 14;
 
-
-std::unordered_map<std::string, std::string> ArpListener::results() const
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    return results_;
-}
-
 bool ArpListener::parse_packet(const uint8_t* buffer, uint32_t length)
 {
     // Need at least a full Ethernet + ARP frame.
@@ -88,10 +81,7 @@ bool ArpListener::parse_packet(const uint8_t* buffer, uint32_t length)
     inet_ntop(AF_INET, arp + ARP_OFF_SPA, ip_str, sizeof(ip_str));
 
     // --- Deliver result ---
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        results_[ip_str] = mac_str;
-    }
+    manager_.update_l2(ip_str, mac_str);
 
     return true;
 }
