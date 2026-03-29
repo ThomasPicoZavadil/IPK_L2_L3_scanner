@@ -27,30 +27,28 @@
 int main(int argc, char* argv[]) {
     Config cfg = Config::parse(argc, argv);
 
-    // Print parsed configuration
-    std::cout << "=== Parsed Configuration ===\n";
-    std::cout << "Interface : " << cfg.interface() << "\n";
-    std::cout << "Timeout   : " << cfg.timeout_ms() << " ms\n";
-    std::cout << "Subnets   :\n";
-    for (const auto& s : cfg.subnets()) {
-        std::cout << "  - " << s << "\n";
-    }
-    std::cout << "\n";
-
     // Resolve interface info (MAC, IPv4, IPv6)
     InterfaceInfo ifinfo;
     try {
         ifinfo = get_interface_info(cfg.interface());
-        std::cout << "=== Interface Info ===\n";
-        std::cout << "  Name : " << ifinfo.name << "\n";
-        std::cout << "  MAC  : " << (ifinfo.mac_address.empty()  ? "(none)" : ifinfo.mac_address)  << "\n";
-        std::cout << "  IPv4 : " << (ifinfo.ipv4_address.empty() ? "(none)" : ifinfo.ipv4_address) << "\n";
-        std::cout << "  IPv6 : " << (ifinfo.ipv6_address.empty() ? "(none)" : ifinfo.ipv6_address) << "\n";
-        std::cout << "\n";
     } catch (const std::exception& e) {
         std::cerr << "Error querying interface '" << cfg.interface() << "': " << e.what() << "\n";
         return 1;
     }
+
+    std::vector<Subnet> parsed_subnets;
+    std::cout << "Scanning ranges:\n";
+    for (const auto& cidr : cfg.subnets()) {
+        try {
+            Subnet subnet(cidr);
+            parsed_subnets.push_back(subnet);
+            std::cout << subnet.network_address() << "/" << subnet.prefix_length() << " " << subnet.usable_host_count() << "\n";
+        } catch (const std::exception& e) {
+            std::cerr << "Error parsing '" << cidr << "': " << e.what() << "\n";
+            return 1;
+        }
+    }
+    std::cout << "\n";
 
     // Open raw socket for packet crafting
     int raw_sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
@@ -82,39 +80,20 @@ int main(int argc, char* argv[]) {
     engine.start();
     std::cerr << "[PCAP] Listening for ARP and ICMP replies on " << cfg.interface() << "\n";
 
-    // Parse each subnet and send ARP requests for IPv4 hosts
-    for (const auto& cidr : cfg.subnets()) {
-        try {
-            Subnet subnet(cidr);
+    // Send ARP and ICMPv4 requests for each host in each parsed subnet
+    for (const auto& subnet : parsed_subnets) {
+        auto hosts = subnet.generate_host_ips();
 
-            std::cout << "=== Subnet: " << subnet.cidr() << " ===\n";
-            std::cout << "  Network    : " << subnet.network_address() << "\n";
-            std::cout << "  Prefix     : /" << subnet.prefix_length() << "\n";
-            std::cout << "  Type       : " << (subnet.is_ipv6() ? "IPv6" : "IPv4") << "\n";
-            std::cout << "  Usable IPs : " << subnet.usable_host_count() << "\n";
-
-            auto hosts = subnet.generate_host_ips();
-            std::cout << "  Generated  : " << hosts.size() << " addresses\n\n";
-
-            if (!subnet.is_ipv6()) {
-                // Send ARP and ICMPv4 requests for each host in this IPv4 subnet
-                for (const auto& host : hosts) {
-                    manager.add_target(host, false);
-                    try {
-                        arp.send_request(host);
-                        icmp.send_request(host);
-                    } catch (const std::exception& e) {
-                        std::cerr << "ARP send error: " << e.what() << "\n";
-                    }
+        if (!subnet.is_ipv6()) {
+            for (const auto& host : hosts) {
+                manager.add_target(host, false);
+                try {
+                    arp.send_request(host);
+                    icmp.send_request(host);
+                } catch (const std::exception& e) {
+                    std::cerr << "Send error for host " << host << ": " << e.what() << "\n";
                 }
-            } else {
-                std::cout << "  (IPv6 subnet - skipping ARP)\n\n";
             }
-
-        } catch (const std::exception& e) {
-            std::cerr << "Error parsing '" << cidr << "': " << e.what() << "\n";
-            close(raw_sock);
-            return 1;
         }
     }
 
@@ -128,7 +107,6 @@ int main(int argc, char* argv[]) {
     std::cerr << "[PCAP] Capture stopped.\n\n";
 
     // --- Output Results ---
-    std::cout << "\n=== Scan Results ===\n";
     manager.print_results();
 
     close(raw_sock);
