@@ -1,6 +1,6 @@
 CXX      = g++
 CXXFLAGS = -std=c++20 -Wall -Wextra -pedantic
-TARGET   = ipk-l2l3-scan
+TARGET   = ipk-L2L3-scan
 SRCDIR   = src
 BUILDDIR = build
 
@@ -20,6 +20,9 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp | $(BUILDDIR)
 
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
+
+NixDevShellName:
+	@echo c
 
 clean:
 	rm -rf $(BUILDDIR) $(TARGET)
