@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "netif.hpp"
 #include <getopt.h>
 
 /**
@@ -66,6 +67,12 @@ inline Config Config::parse(int argc, char* argv[]) {
     };
 
     int opt;
+
+    if (argc == 2 && (std::string(argv[1]) == "-i" || std::string(argv[1]) == "--interface")) {
+        print_active_interfaces();
+        std::exit(0);
+    }
+
     while ((opt = getopt_long(argc, argv, "i:s:w:h", long_options, nullptr)) != -1) {
         switch (opt) {
             case 'i':

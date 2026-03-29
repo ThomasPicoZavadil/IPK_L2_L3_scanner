@@ -31,4 +31,9 @@ struct InterfaceInfo {
  */
 InterfaceInfo get_interface_info(const std::string& iface_name);
 
+/**
+ * @brief Prints a list of all active network interfaces to stdout.
+ */
+void print_active_interfaces();
+
 #endif // NETIF_HPP

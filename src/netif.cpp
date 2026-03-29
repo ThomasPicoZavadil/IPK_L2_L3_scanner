@@ -1,6 +1,6 @@
 /**
  * @file netif.cpp
- * @brief Implementation of get_interface_info() – retrieves MAC, IPv4, IPv6
+ * @brief Implementation of get_interface_info() - retrieves MAC, IPv4, IPv6
  *        for the given network interface using Linux APIs.
  */
 #include "netif.hpp"
@@ -10,6 +10,8 @@
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <iostream>
+#include <set>
 
 // Linux / POSIX headers
 #include <arpa/inet.h>
@@ -132,4 +134,26 @@ InterfaceInfo get_interface_info(const std::string& iface_name) {
     }
 
     return info;
+}
+
+void print_active_interfaces() {
+    struct ifaddrs* ifaddr = nullptr;
+    if (getifaddrs(&ifaddr) == -1) {
+        std::cerr << "getifaddrs() failed: " << std::strerror(errno) << "\n";
+        return;
+    }
+
+    struct IfAddrGuard {
+        struct ifaddrs* p;
+        ~IfAddrGuard() { if (p) freeifaddrs(p); }
+    } guard{ifaddr};
+
+    std::set<std::string> interfaces;
+    for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+        if (ifa->ifa_name) interfaces.insert(ifa->ifa_name);
+    }
+
+    for (const auto& iface : interfaces) {
+        std::cout << iface << "\n";
+    }
 }
