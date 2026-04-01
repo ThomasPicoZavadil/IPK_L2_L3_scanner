@@ -30,14 +30,17 @@ void ScanResultManager::print_results() const
     std::lock_guard<std::mutex> lock(mutex_);
     
     for (const auto& [ip, res] : results_) {
-        std::cout << ip << " arp ";
+        const char* l2_label = res.is_ipv6 ? "ndp"    : "arp";
+        const char* l3_label = res.is_ipv6 ? "icmpv6" : "icmpv4";
+
+        std::cout << ip << " " << l2_label << " ";
         if (res.l2_ok) {
             std::cout << "OK (" << res.mac_addr << "), ";
         } else {
             std::cout << "FAIL, ";
         }
-        
-        std::cout << "icmpv4 ";
+
+        std::cout << l3_label << " ";
         if (res.l3_ok) {
             std::cout << "OK\n";
         } else {
