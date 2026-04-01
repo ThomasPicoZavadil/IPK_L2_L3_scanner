@@ -10,6 +10,7 @@
 #include "scan_result_manager.hpp"
 #include "icmpv4/icmpv4_crafter.hpp"
 #include "icmpv4/icmpv4_listener.hpp"
+#include "ndp/ndp_crafter.hpp"
 #include "pcap_engine.hpp"
 
 #include <algorithm>
@@ -64,6 +65,9 @@ int main(int argc, char* argv[]) {
     // Create ICMPv4 crafter
     Icmpv4Crafter icmp(raw_sock, ifinfo);
 
+    // Create NDP crafter
+    NdpCrafter ndp(raw_sock, ifinfo);
+
     // Create central result manager
     ScanResultManager manager;
 
@@ -90,6 +94,15 @@ int main(int argc, char* argv[]) {
                 try {
                     arp.send_request(host);
                     icmp.send_request(host);
+                } catch (const std::exception& e) {
+                    std::cerr << "Send error for host " << host << ": " << e.what() << "\n";
+                }
+            }
+        } else {
+            for (const auto& host : hosts) {
+                manager.add_target(host, true);
+                try {
+                    ndp.send_request(host);
                 } catch (const std::exception& e) {
                     std::cerr << "Send error for host " << host << ": " << e.what() << "\n";
                 }
