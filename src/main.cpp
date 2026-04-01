@@ -11,6 +11,7 @@
 #include "icmpv4/icmpv4_crafter.hpp"
 #include "icmpv4/icmpv4_listener.hpp"
 #include "ndp/ndp_crafter.hpp"
+#include "ndp/ndp_listener.hpp"
 #include "pcap_engine.hpp"
 
 #include <algorithm>
@@ -77,12 +78,16 @@ int main(int argc, char* argv[]) {
     // Create ICMPv4 listener (pushes to manager)
     Icmpv4Listener icmp_listener(manager);
 
-    // Start packet capture on the interface (filter: ARP and ICMP)
-    PcapEngine engine(cfg.interface(), "arp or icmp");
+    // Create NDP listener (pushes to manager)
+    NdpListener ndp_listener(manager);
+
+    // Start packet capture on the interface (filter: ARP, ICMP, and ICMPv6)
+    PcapEngine engine(cfg.interface(), "arp or icmp or icmp6");
     engine.add_listener(&arp_listener);
     engine.add_listener(&icmp_listener);
+    engine.add_listener(&ndp_listener);
     engine.start();
-    std::cerr << "[PCAP] Listening for ARP and ICMP replies on " << cfg.interface() << "\n";
+    std::cerr << "[PCAP] Listening for ARP, ICMP, and ICMPv6 replies on " << cfg.interface() << "\n";
 
     // Send ARP and ICMPv4 requests for each host in each parsed subnet
     for (const auto& subnet : parsed_subnets) {
