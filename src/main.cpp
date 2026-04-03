@@ -12,6 +12,7 @@
 #include "icmpv4/icmpv4_listener.hpp"
 #include "ndp/ndp_crafter.hpp"
 #include "ndp/ndp_listener.hpp"
+#include "icmpv6/icmpv6_crafter.hpp"
 #include "pcap_engine.hpp"
 
 #include <algorithm>
@@ -69,6 +70,9 @@ int main(int argc, char* argv[]) {
     // Create NDP crafter
     NdpCrafter ndp(raw_sock, ifinfo);
 
+    // Create ICMPv6 crafter
+    Icmpv6Crafter icmpv6(raw_sock, ifinfo);
+
     // Create central result manager
     ScanResultManager manager;
 
@@ -108,6 +112,7 @@ int main(int argc, char* argv[]) {
                 manager.add_target(host, true);
                 try {
                     ndp.send_request(host);
+                    icmpv6.send_request(host);
                 } catch (const std::exception& e) {
                     std::cerr << "Send error for host " << host << ": " << e.what() << "\n";
                 }

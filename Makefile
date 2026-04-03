@@ -4,7 +4,7 @@ TARGET   = ipk-L2L3-scan
 SRCDIR   = src
 BUILDDIR = build
 
-SRCS = $(SRCDIR)/main.cpp $(SRCDIR)/subnet.cpp $(SRCDIR)/netif.cpp $(SRCDIR)/arp/arp_crafter.cpp $(SRCDIR)/pcap_engine.cpp $(SRCDIR)/arp/arp_listener.cpp $(SRCDIR)/icmpv4/icmpv4_crafter.cpp $(SRCDIR)/icmpv4/icmpv4_listener.cpp $(SRCDIR)/scan_result_manager.cpp $(SRCDIR)/ndp/ndp_crafter.cpp $(SRCDIR)/ndp/ndp_listener.cpp
+SRCS = $(SRCDIR)/main.cpp $(SRCDIR)/subnet.cpp $(SRCDIR)/netif.cpp $(SRCDIR)/arp/arp_crafter.cpp $(SRCDIR)/pcap_engine.cpp $(SRCDIR)/arp/arp_listener.cpp $(SRCDIR)/icmpv4/icmpv4_crafter.cpp $(SRCDIR)/icmpv4/icmpv4_listener.cpp $(SRCDIR)/scan_result_manager.cpp $(SRCDIR)/ndp/ndp_crafter.cpp $(SRCDIR)/ndp/ndp_listener.cpp $(SRCDIR)/icmpv6/icmpv6_crafter.cpp
 OBJS = $(patsubst $(SRCDIR)/%.cpp,$(BUILDDIR)/%.o,$(SRCS))
 
 .PHONY: all clean
