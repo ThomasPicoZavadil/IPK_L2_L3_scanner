@@ -13,6 +13,7 @@
 #include "ndp/ndp_crafter.hpp"
 #include "ndp/ndp_listener.hpp"
 #include "icmpv6/icmpv6_crafter.hpp"
+#include "icmpv6/icmpv6_listener.hpp"
 #include "pcap_engine.hpp"
 
 #include <algorithm>
@@ -85,11 +86,15 @@ int main(int argc, char* argv[]) {
     // Create NDP listener (pushes to manager)
     NdpListener ndp_listener(manager);
 
+    // Create ICMPv6 listener (pushes to manager)
+    Icmpv6Listener icmpv6_listener(manager);
+
     // Start packet capture on the interface (filter: ARP, ICMP, and ICMPv6)
     PcapEngine engine(cfg.interface(), "arp or icmp or icmp6");
     engine.add_listener(&arp_listener);
     engine.add_listener(&icmp_listener);
     engine.add_listener(&ndp_listener);
+    engine.add_listener(&icmpv6_listener);
     engine.start();
     std::cerr << "[PCAP] Listening for ARP, ICMP, and ICMPv6 replies on " << cfg.interface() << "\n";
 
