@@ -28,9 +28,6 @@ static constexpr size_t ARP_PKT_LEN = 28;
 static constexpr size_t FRAME_LEN   = ETH_HDR_LEN + ARP_PKT_LEN;
 
 void ArpCrafter::send_request(const std::string& target_ip) {
-    std::cerr << "[ARP] Crafting request: "
-              << iface_.mac_address << " (" << iface_.ipv4_address << ") -> "
-              << target_ip << " on " << iface_.name << "\n";
 
     // Parse sender and target IPv4 addresses
     struct in_addr sender_addr{};
@@ -83,7 +80,7 @@ void ArpCrafter::send_request(const std::string& target_ip) {
     std::memcpy(arp + off, &sender_addr.s_addr, 4);
     off += 4;
 
-    // Target hardware address (6) — all zeros (unknown)
+    // Target hardware address (6) - all zeros (unknown)
     std::memset(arp + off, 0x00, ETH_ALEN);
     off += ETH_ALEN;
 
@@ -107,6 +104,4 @@ void ArpCrafter::send_request(const std::string& target_ip) {
             "': " + std::strerror(errno));
     }
 
-    std::cerr << "[ARP] Sent " << sent << "/" << FRAME_LEN
-              << " bytes (who-has " << target_ip << ")\n";
 }

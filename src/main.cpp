@@ -96,7 +96,6 @@ int main(int argc, char* argv[]) {
     engine.add_listener(&ndp_listener);
     engine.add_listener(&icmpv6_listener);
     engine.start();
-    std::cerr << "[PCAP] Listening for ARP, ICMP, and ICMPv6 replies on " << cfg.interface() << "\n";
 
     // Send ARP and ICMPv4 requests for each host in each parsed subnet
     for (const auto& subnet : parsed_subnets) {
@@ -126,13 +125,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Wait for remaining ARP replies to arrive
-    std::cerr << "[PCAP] Waiting " << cfg.timeout_ms()
-              << " ms for ARP replies...\n";
     std::this_thread::sleep_for(
         std::chrono::milliseconds(cfg.timeout_ms()));
 
     engine.stop();
-    std::cerr << "[PCAP] Capture stopped.\n\n";
 
     // --- Output Results ---
     manager.print_results();

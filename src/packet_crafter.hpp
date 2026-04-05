@@ -3,7 +3,7 @@
  * @brief Abstract base class for protocol-specific packet crafters.
  *
  * Each derived crafter knows how to build and send one kind of request
- * (ARP, NDP, ICMPv4 echo, …) through a pre-opened raw socket.
+ * (ARP, NDP, ICMPv4 echo, ...) through a pre-opened raw socket.
  */
 #ifndef PACKET_CRAFTER_HPP
 #define PACKET_CRAFTER_HPP
@@ -24,7 +24,7 @@
  * interface information, the resolved interface index, and the local
  * MAC address as raw bytes.
  *
- * The socket is **not** owned by this class — the caller is responsible
+ * The socket is **not** owned by this class - the caller is responsible
  * for creating and closing it.
  */
 class PacketCrafter {

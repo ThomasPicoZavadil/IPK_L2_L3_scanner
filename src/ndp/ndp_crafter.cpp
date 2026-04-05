@@ -107,9 +107,6 @@ uint16_t NdpCrafter::compute_icmpv6_checksum(const uint8_t* src_addr,
 
 void NdpCrafter::send_request(const std::string& target_ip)
 {
-    std::cerr << "[NDP] Crafting Neighbor Solicitation: "
-              << iface_.ipv6_address << " -> " << target_ip
-              << " on " << iface_.name << "\n";
 
     // -- Parse source IPv6 address (interface link-local / global) --
     struct in6_addr src_addr{};
@@ -220,7 +217,4 @@ void NdpCrafter::send_request(const std::string& target_ip)
             "sendto() failed for NDP NS to '" + target_ip +
             "': " + std::strerror(errno));
     }
-
-    std::cerr << "[NDP] Sent " << sent << "/" << FRAME_LEN
-              << " bytes (NS for " << target_ip << ")\n";
 }

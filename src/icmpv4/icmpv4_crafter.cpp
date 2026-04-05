@@ -52,8 +52,6 @@ uint16_t Icmpv4Crafter::calculate_checksum(const uint16_t* data, size_t length)
 // Send Echo Request
 void Icmpv4Crafter::send_request(const std::string& target_ip)
 {
-    std::cerr << "[ICMPv4] Crafting echo request: "
-              << iface_.ipv4_address << " -> " << target_ip << " on " << iface_.name << "\n";
 
     // Parse sender and target IPv4 addresses
     struct in_addr sender_addr{};
@@ -126,7 +124,4 @@ void Icmpv4Crafter::send_request(const std::string& target_ip)
             "sendto() failed for ICMP request to '" + target_ip +
             "': " + std::strerror(errno));
     }
-
-    std::cerr << "[ICMPv4] Sent " << sent << "/" << FRAME_LEN
-              << " bytes (echo to " << target_ip << ")\n";
 }

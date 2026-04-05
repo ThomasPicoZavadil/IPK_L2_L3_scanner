@@ -3,7 +3,7 @@
  * @brief Abstract base class for protocol-specific packet listeners.
  *
  * Each derived listener knows how to parse one kind of response
- * (ARP reply, NDP, ICMPv4 echo reply, …) from a captured byte buffer.
+ * (ARP reply, NDP, ICMPv4 echo reply, ...) from a captured byte buffer.
  */
 #ifndef PACKET_LISTENER_HPP
 #define PACKET_LISTENER_HPP

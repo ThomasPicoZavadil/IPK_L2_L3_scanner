@@ -26,11 +26,11 @@
  *   PcapEngine engine("eth0", "arp");
  *   engine.add_listener(&my_listener);
  *   engine.start();        // capture runs in background thread
- *   // … send probes …
+ *   // send probes
  *   engine.stop();         // breaks loop, joins thread
  * @endcode
  *
- * The engine does **not** own the listeners — the caller must ensure they
+ * The engine does **not** own the listeners - the caller must ensure they
  * outlive the engine (or at least the capture loop).
  */
 class PcapEngine {

@@ -102,9 +102,6 @@ uint16_t Icmpv6Crafter::compute_icmpv6_checksum(const uint8_t* src_addr,
 
 void Icmpv6Crafter::send_request(const std::string& target_ip)
 {
-    std::cerr << "[ICMPv6] Crafting Echo Request: "
-              << iface_.ipv6_address << " -> " << target_ip
-              << " on " << iface_.name << "\n";
 
     // Parse source IPv6 address
     struct in6_addr src_addr{};
@@ -198,7 +195,4 @@ void Icmpv6Crafter::send_request(const std::string& target_ip)
             "sendto() failed for ICMPv6 Echo Request to '" + target_ip +
             "': " + std::strerror(errno));
     }
-
-    std::cerr << "[ICMPv6] Sent " << sent << "/" << FRAME_LEN
-              << " bytes (echo to " << target_ip << ")\n";
 }
