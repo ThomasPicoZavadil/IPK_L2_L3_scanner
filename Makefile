@@ -23,7 +23,10 @@ $(BUILDDIR):
 
 # ── Unit tests (GTest) ──────────────────────────────────────────────────────
 TEST_TARGET = run_tests
-TEST_SRCS   = tests/test_cidr.cpp $(SRCDIR)/subnet.cpp
+TEST_SRCS   = tests/test_cidr.cpp tests/test_packets.cpp \
+              $(SRCDIR)/subnet.cpp $(SRCDIR)/scan_result_manager.cpp \
+              $(SRCDIR)/arp/arp_listener.cpp $(SRCDIR)/icmpv4/icmpv4_listener.cpp \
+              $(SRCDIR)/ndp/ndp_listener.cpp $(SRCDIR)/icmpv6/icmpv6_listener.cpp
 
 $(TEST_TARGET): $(TEST_SRCS)
 	$(CXX) $(CXXFLAGS) -I$(SRCDIR) -o $@ $^ -lgtest -lgtest_main -pthread

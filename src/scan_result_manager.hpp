@@ -44,6 +44,11 @@ public:
      */
     void print_results() const;
 
+    /**
+     * @brief Read-only access to the results map (for testing).
+     */
+    const std::map<std::string, HostResult>& results() const { return results_; }
+
 private:
     mutable std::mutex                mutex_;
     std::map<std::string, HostResult> results_;
